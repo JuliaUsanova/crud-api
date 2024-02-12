@@ -1,6 +1,7 @@
 import { readFile, writeFile } from "node:fs/promises";
 import { User } from "../models";
 import { resolve } from "node:path";
+import { USERS_DB_ERRORS_MAP } from "../constants";
 
 export class UsersDB {
   #dataPath = resolve(__dirname, "../data.json");
@@ -19,8 +20,14 @@ export class UsersDB {
   }
 
   get(id?: string) {
-    if (!id || !this.#storage[id]) {
-      throw new Error("Get failed. Invalid user id");
+    if (!id) {
+      throw new Error("Please provide user id", {
+        cause: USERS_DB_ERRORS_MAP.BAD_REQUEST,
+      });
+    } else if (!this.#storage[id]) {
+      throw new Error("Invalid user id", {
+        cause: USERS_DB_ERRORS_MAP.NOT_FOUND,
+      });
     }
 
     return this.#storage[id];
@@ -28,7 +35,9 @@ export class UsersDB {
 
   async create(user: User) {
     if (!User.isValid(user)) {
-      throw new Error("Create failed. Invalid user parameters");
+      throw new Error("Please provide username, age and hobbies", {
+        cause: USERS_DB_ERRORS_MAP.BAD_REQUEST,
+      });
     }
 
     this.#storage[user.id] = user;
@@ -38,9 +47,16 @@ export class UsersDB {
 
   async update(userParams: User, id?: string) {
     if (!id || !User.isValid(userParams)) {
-      throw new Error("Update failed. Invalid user parameters");
+      throw new Error(
+        "Please provide username, age and hobbies in body and user id in path",
+        {
+          cause: USERS_DB_ERRORS_MAP.BAD_REQUEST,
+        }
+      );
     } else if (!this.#storage[id]) {
-      throw new Error("Update failed. User doesnt exist");
+      throw new Error("Invalid user id", {
+        cause: USERS_DB_ERRORS_MAP.NOT_FOUND,
+      });
     }
     const storedUser = this.#find(id);
 
@@ -49,8 +65,14 @@ export class UsersDB {
   }
 
   async delete(id?: string) {
-    if (!id || !this.#storage[id]) {
-      throw new Error("Delete failed. Invalid user id");
+    if (!id) {
+      throw new Error("Please provide user id", {
+        cause: USERS_DB_ERRORS_MAP.BAD_REQUEST,
+      });
+    } else if (!this.#storage[id]) {
+      throw new Error("Invalid user id", {
+        cause: USERS_DB_ERRORS_MAP.NOT_FOUND,
+      });
     }
     const storedUser = this.#find(id);
 
@@ -61,7 +83,11 @@ export class UsersDB {
   #find(id: string) {
     const user = this.get(id);
 
-    if (!user) throw new Error("User not found");
+    if (!user) {
+      throw new Error("Please provide user id", {
+        cause: USERS_DB_ERRORS_MAP.BAD_REQUEST,
+      });
+    }
 
     return user;
   }
@@ -72,7 +98,9 @@ export class UsersDB {
     try {
       await writeFile(this.#dataPath, usersJson, { encoding: "utf8" });
     } catch (error) {
-      throw new Error("Internal server error");
+      throw new Error("Sorry, something went wrong", {
+        cause: USERS_DB_ERRORS_MAP.INTERNAL,
+      });
     }
   }
 }

@@ -35,12 +35,12 @@ export class App {
           res.setHeader("Content-Type", "application/json");
           res.end(JSON.stringify(user));
         } catch (error) {
-          const message = {
-            message: STATUS_MESSAGES[RESPONSE_STATUS_CODES.BAD_REQUEST],
-            details: error,
-          };
-          res.statusCode = RESPONSE_STATUS_CODES.BAD_REQUEST;
-          res.end(JSON.stringify(message));
+          const { message, details, statusCode } = this.buildFailedResponse(
+            error as unknown as Error
+          );
+
+          res.statusCode = statusCode;
+          res.end(JSON.stringify({ message, details }));
         }
       } else if (pathname?.match(/\/api\/users/) && req.method == "GET") {
         const users = this.#db?.getAll();
@@ -65,15 +65,15 @@ export class App {
           res.end(JSON.stringify(user));
         });
 
-        req.on("error", (err) => {
-          console.error(err);
+        req.on("error", (error) => {
+          console.error(error);
 
-          const message = {
-            message: STATUS_MESSAGES[RESPONSE_STATUS_CODES.BAD_REQUEST],
-            details: err,
-          };
-          res.statusCode = RESPONSE_STATUS_CODES.BAD_REQUEST;
-          res.end(JSON.stringify(message));
+          const { message, details, statusCode } = this.buildFailedResponse(
+            error as unknown as Error
+          );
+
+          res.statusCode = statusCode;
+          res.end(JSON.stringify({ message, details }));
         });
       } else if (
         pathname?.match(/\/api\/users\/([0-9a-fA-F]-)*[0-9a-fA-F]/g) &&
@@ -94,15 +94,15 @@ export class App {
           }
         });
 
-        req.on("error", (err) => {
-          console.error(err);
+        req.on("error", (error) => {
+          console.error(error);
 
-          const message = {
-            message: STATUS_MESSAGES[RESPONSE_STATUS_CODES.BAD_REQUEST],
-            details: err,
-          };
-          res.statusCode = RESPONSE_STATUS_CODES.BAD_REQUEST;
-          res.end(JSON.stringify(message));
+          const { message, details, statusCode } = this.buildFailedResponse(
+            error as unknown as Error
+          );
+
+          res.statusCode = statusCode;
+          res.end(JSON.stringify({ message, details }));
         });
       } else if (
         pathname?.match(/\/api\/users\/([0-9a-fA-F]-)*[0-9a-fA-F]/g) &&
@@ -114,21 +114,23 @@ export class App {
           await this.#db?.delete(id);
           res.statusCode = RESPONSE_STATUS_CODES.NO_CONTENT;
           res.end();
-        } catch (err) {
-          const message = {
-            message: STATUS_MESSAGES[RESPONSE_STATUS_CODES.BAD_REQUEST],
-            details: err,
-          };
-          res.statusCode = RESPONSE_STATUS_CODES.BAD_REQUEST;
-          res.end(JSON.stringify(message));
+        } catch (error) {
+          const { message, details, statusCode } = this.buildFailedResponse(
+            error as unknown as Error
+          );
+
+          res.statusCode = statusCode;
+          res.end(JSON.stringify({ message, details }));
         }
       } else {
-        const message = {
-          message: STATUS_MESSAGES[RESPONSE_STATUS_CODES.BAD_REQUEST],
-          details: "Invalid endpoint or method",
-        };
-        res.statusCode = RESPONSE_STATUS_CODES.BAD_REQUEST;
-        res.end(JSON.stringify(message));
+        const error = new Error("Invalid endpoint or method", {
+          cause: RESPONSE_STATUS_CODES.BAD_REQUEST,
+        });
+        const { message, details, statusCode } =
+          this.buildFailedResponse(error);
+
+        res.statusCode = statusCode;
+        res.end(JSON.stringify({ message, details }));
       }
     });
 
@@ -140,5 +142,22 @@ export class App {
     if (!request.url) {
       throw new Error("No request url provided");
     }
+  }
+
+  buildFailedResponse(error: Error) {
+    if ("cause" in error) {
+      const cause = error.cause as RESPONSE_STATUS_CODES;
+      return {
+        message: STATUS_MESSAGES[cause],
+        details: error.message,
+        statusCode: cause,
+      };
+    }
+
+    return {
+      message: STATUS_MESSAGES[RESPONSE_STATUS_CODES.BAD_REQUEST],
+      details: error,
+      statusCode: RESPONSE_STATUS_CODES.BAD_REQUEST,
+    };
   }
 }
