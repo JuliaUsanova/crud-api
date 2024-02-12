@@ -19,7 +19,7 @@ export class UsersDB {
   }
 
   get(id?: string) {
-    if (!id || this.#storage[id]) {
+    if (!id || !this.#storage[id]) {
       throw new Error("Get failed. Invalid user id");
     }
 
