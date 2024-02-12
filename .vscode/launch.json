@@ -1,0 +1,24 @@
+{
+  "configurations": [
+    {
+      "name": "Launch Program",
+      "program": "./dist/main.js",
+      "request": "launch",
+      "skipFiles": ["node_internals/**"],
+      "type": "node",
+      "stopOnEntry": false,
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run-script", "debug"],
+      "sourceMaps": true,
+      "cwd": "${workspaceRoot}",
+      "env": {
+        "NODE_ENV": "development"
+      },
+      "sourceMapPathOverrides": {
+        "webpack:///./*": "${cwd}/*"
+      },
+      "console": "integratedTerminal",
+      "port": 9229
+    }
+  ]
+}

@@ -1,16 +1,17 @@
-import { readFile } from "node:fs/promises";
-import { User } from "models";
+import { readFile, writeFile } from "node:fs/promises";
+import { User } from "../models";
 import { resolve } from "node:path";
-import { v4 as uuidv4 } from "uuid";
 
 export class UsersDB {
-  #dataPath = resolve(__dirname, "..", "/data.json");
-  #data: Buffer | null = null;
+  #dataPath = resolve(__dirname, "../data.json");
   #storage = {} as Record<string, User>;
 
   async initDB() {
     const data = await readFile(this.#dataPath, { encoding: "utf8" });
-    this.#data = JSON.parse(data)
+    const parsedData = JSON.parse(data);
+    parsedData.forEach((user: User) => {
+      this.#storage[user.id] = user;
+    });
   }
 
   getAll() {
@@ -22,11 +23,12 @@ export class UsersDB {
   }
 
   create(user: User) {
-    if (!(user instanceof User)) {
+    if (!(user instanceof User) || !user.isValid()) {
       throw new Error("Invalid user parameters");
     }
-    const id = uuidv4();
-    this.#storage[id] = user;
+
+    this.#storage[user.id] = user;
+    this.#updateData(Object.values(this.#storage));
   }
 
   update(id: string, userParams: User) {
@@ -47,5 +49,11 @@ export class UsersDB {
     if (!user) throw new Error("User not found");
 
     return user;
+  }
+
+  async #updateData(users: User[]) {
+    const usersJson = JSON.stringify(users);
+
+    await writeFile(this.#dataPath, usersJson, { encoding: "utf8" });
   }
 }

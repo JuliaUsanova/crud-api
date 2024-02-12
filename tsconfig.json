@@ -4,9 +4,11 @@
     "forceConsistentCasingInFileNames": true,
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
-    "lib": ["ESNext"],
-    "module": "CommonJS",
+    "lib": ["ESNext", "ES2020", "ES2021", "ES2022", "ES2023", "ES6"],
+    "rootDir": "./src",
+    "module": "commonjs",
     "moduleResolution": "Node",
+    "allowJs": true,
     "noUncheckedIndexedAccess": true,
     "strictNullChecks": true,
     "noUnusedLocals": true,
@@ -24,5 +26,8 @@
     "alwaysStrict": true,
     "noImplicitAny": true,
     "noImplicitReturns": true
-  }
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"],
+  "files": ["src/index.ts"]
 }

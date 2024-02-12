@@ -1,16 +1,8 @@
-import { UsersDB } from "db";
+import { App } from "./app";
 import { config } from "dotenv";
 config();
 
-const port = process.env.PORT;
+const app = new App(process.env.PORT);
 
-class App {
-  static start() {
-    console.log(`Server is running on port ${port}`);
-
-    const db = new UsersDB();
-    db.initDB();
-  }
-}
-
-App.start();
+app.init();
+app.startServer();
