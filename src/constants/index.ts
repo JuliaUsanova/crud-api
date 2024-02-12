@@ -1,1 +1,1 @@
-export { RESPONSE_STATUS_CODES } from "./constants";
+export { RESPONSE_STATUS_CODES, STATUS_MESSAGES } from "./constants";

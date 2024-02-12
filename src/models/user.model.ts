@@ -13,12 +13,13 @@ export class User {
     this.hobbies = hobbies;
   }
 
-  isValid() {
+  static isValid(user: User) {
     return (
-      this.username.length > 0 &&
-      this.age > 0 &&
-      this.hobbies &&
-      this.hobbies.length >= 0
+      user &&
+      user.username.length > 0 &&
+      user.age > 0 &&
+      user.hobbies &&
+      user.hobbies.length >= 0
     );
   }
 }
