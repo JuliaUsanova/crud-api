@@ -1,8 +1,17 @@
-import { User } from "models/user.model";
+import { readFile } from "node:fs/promises";
+import { User } from "models";
+import { resolve } from "node:path";
 import { v4 as uuidv4 } from "uuid";
 
 export class UsersDB {
+  #dataPath = resolve(__dirname, "..", "/data.json");
+  #data: Buffer | null = null;
   #storage = {} as Record<string, User>;
+
+  async initDB() {
+    const data = await readFile(this.#dataPath, { encoding: "utf8" });
+    this.#data = JSON.parse(data)
+  }
 
   getAll() {
     return Object.values(this.#storage);
