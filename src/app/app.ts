@@ -1,10 +1,10 @@
-import { RESPONSE_STATUS_CODES, STATUS_MESSAGES } from "../constants";
+import { buildFailedResponse } from "../utils";
+import { RESPONSE_STATUS_CODES } from "../constants";
 import { UsersDB } from "../db";
 import { User } from "../models";
 import { IncomingMessage, createServer } from "node:http";
 import url from "node:url";
 
-// TODO: HOW TO CATCH INTERNAL SERVER ERRORS?
 export class App {
   #port: string | null = null;
   #db: UsersDB | null = null;
@@ -35,7 +35,7 @@ export class App {
           res.setHeader("Content-Type", "application/json");
           res.end(JSON.stringify(user));
         } catch (error) {
-          const { message, details, statusCode } = this.buildFailedResponse(
+          const { message, details, statusCode } = buildFailedResponse(
             error as unknown as Error
           );
 
@@ -68,7 +68,7 @@ export class App {
         req.on("error", (error) => {
           console.error(error);
 
-          const { message, details, statusCode } = this.buildFailedResponse(
+          const { message, details, statusCode } = buildFailedResponse(
             error as unknown as Error
           );
 
@@ -97,7 +97,7 @@ export class App {
         req.on("error", (error) => {
           console.error(error);
 
-          const { message, details, statusCode } = this.buildFailedResponse(
+          const { message, details, statusCode } = buildFailedResponse(
             error as unknown as Error
           );
 
@@ -115,7 +115,7 @@ export class App {
           res.statusCode = RESPONSE_STATUS_CODES.NO_CONTENT;
           res.end();
         } catch (error) {
-          const { message, details, statusCode } = this.buildFailedResponse(
+          const { message, details, statusCode } = buildFailedResponse(
             error as unknown as Error
           );
 
@@ -126,8 +126,7 @@ export class App {
         const error = new Error("Invalid endpoint or method", {
           cause: RESPONSE_STATUS_CODES.BAD_REQUEST,
         });
-        const { message, details, statusCode } =
-          this.buildFailedResponse(error);
+        const { message, details, statusCode } = buildFailedResponse(error);
 
         res.statusCode = statusCode;
         res.end(JSON.stringify({ message, details }));
@@ -142,22 +141,5 @@ export class App {
     if (!request.url) {
       throw new Error("No request url provided");
     }
-  }
-
-  buildFailedResponse(error: Error) {
-    if ("cause" in error) {
-      const cause = error.cause as RESPONSE_STATUS_CODES;
-      return {
-        message: STATUS_MESSAGES[cause],
-        details: error.message,
-        statusCode: cause,
-      };
-    }
-
-    return {
-      message: STATUS_MESSAGES[RESPONSE_STATUS_CODES.BAD_REQUEST],
-      details: error,
-      statusCode: RESPONSE_STATUS_CODES.BAD_REQUEST,
-    };
   }
 }
